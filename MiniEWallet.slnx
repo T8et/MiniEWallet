@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MiniEWallet.APIServices/MiniEWallet.APIServices.csproj" Id="020fa320-e0f1-4e70-81fd-ad07501791a4" />
+  <Project Path="MiniEWallet.ConsoleApp/MiniEWallet.ConsoleApp.csproj" />
+  <Project Path="MiniEWallet.Database/MiniEWallet.Database.csproj" />
+  <Project Path="MiniEWallet.Domains/MiniEWallet.Domains.csproj" />
+</Solution>
