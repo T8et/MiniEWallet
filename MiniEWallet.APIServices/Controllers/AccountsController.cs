@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniEWallet.Database.Models;
 using MiniEWallet.Domains.Services;
@@ -33,7 +34,35 @@ namespace MiniEWallet.APIServices.Controllers
         [HttpPost("CreateAcc")]
         public async Task<IActionResult> CreateAccount(TblAccount account)
         {
-            var data = _service.CreateAccount(account);
+            var data = await _service.CreateAccount(account);
+            return Ok(data);
+        }
+
+        [HttpPut("MakeDeposit")]
+        public async Task<IActionResult> MakeDeposit(int id,int amount)
+        {
+            var data = await _service.MakeDeposit(id, amount);
+            return Ok(data);
+        }
+
+        [HttpPut("MakeTransfer")]
+        public async Task<IActionResult> MakeTransfer(int frid,int toid,int pass,int amt)
+        {
+            var data = await _service.MakeTransfer(frid, toid, pass, amt);
+            return Ok(data);
+        }
+
+        [HttpPut("MakeWithDrawl")]
+        public async Task<IActionResult> MakeWithDrawl(int id,int pass,int amount)
+        {
+            var data = await _service.MakeWithDrawl(id, pass, amount);
+            return Ok(data);
+        }
+
+        [HttpPost("CreateTranType")]
+        public async Task<IActionResult> CreateTranType(string description)
+        {
+            var data = await _service.CreateTranType(description);
             return Ok(data);
         }
     }

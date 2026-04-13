@@ -39,6 +39,28 @@ public class BaseResponseModel
             RespType = EnumRspType.ValidationError,
         };
     }
+
+    public static BaseResponseModel SystemError(string resp_code, string resp_desc)
+    {
+        return new BaseResponseModel()
+        {
+            isSuccess = false,
+            RespCode = resp_code,
+            RespDesc = resp_desc,
+            RespType = EnumRspType.SystemError,
+        };
+    }
+
+    public static BaseResponseModel DataNotExist(string resp_code, string resp_desc)
+    {
+        return new BaseResponseModel()
+        {
+            isSuccess = false,
+            RespCode = resp_code,
+            RespDesc = resp_desc,
+            RespType = EnumRspType.DataNotExist,
+        };
+    }
 }
 
 public enum EnumRspType
@@ -46,5 +68,6 @@ public enum EnumRspType
     None,
     Success,
     ValidationError,
-    SystemError
+    SystemError,
+    DataNotExist
 }
