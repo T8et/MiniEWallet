@@ -29,7 +29,7 @@ namespace MiniEWallet.Domains.Services
             if (accData is null)
             {
                 _tranResponse.trnRsp = BaseResponseModel.DataNotExist("401", "Data Not Exists");
-                return _tranResponse;
+                goto Next;
             }
 
             accData.AccBalance += amount;
@@ -45,10 +45,11 @@ namespace MiniEWallet.Domains.Services
             await _db.SaveChangesAsync();
 
             _tranResponse.trnRsp = BaseResponseModel.Success("200", "Transaction Added Successfully");
+            Next:
             return _tranResponse;
         }
 
-        public async Task<BaseResponseModel> CreateTranType(string description)
+        public async Task<TranResponseModel> CreateTranType(string description)
         {
             try
             {
@@ -58,24 +59,27 @@ namespace MiniEWallet.Domains.Services
                 await _db.TblTranTypes.AddAsync(trantype);
                 await _db.SaveChangesAsync();
 
-                return BaseResponseModel.Success("200", "Transaction Type Added Successfully");
+                _tranResponse.trnRsp = BaseResponseModel.Success("200", "Transaction Type Added Successfully");
+                goto Next;
             }
             catch (Exception ex)
             {
-                return BaseResponseModel.SystemError("502", ex.ToString());
+                _tranResponse.trnRsp = BaseResponseModel.SystemError("502", ex.ToString());
             }
+            Next: return _tranResponse;
         }
 
-        public async Task<BaseResponseModel> MakeTransfer(int frid, int toid, int pass, int amount)
+        public async Task<TranResponseModel> MakeTransfer(int frid, int toid, int pass, int amount)
         {
             try
             {
                 var accData = await _db.TblAccounts.Where(x => x.AccId == frid).FirstOrDefaultAsync();
                 if (accData is null)
                 {
-                    return BaseResponseModel.DataNotExist("401", "Data Not Exists");
+                    _tranResponse.trnRsp = BaseResponseModel.DataNotExist("401", "Data Not Exists");
+                    goto State;
                 }
-                if (accData.AccPassword == pass && accData.AccBalance < amount)
+                if (accData.AccPassword == pass && accData.AccBalance > amount)
                 {
                     accData.AccBalance = accData.AccBalance - amount;
                     await _db.SaveChangesAsync();
@@ -95,31 +99,37 @@ namespace MiniEWallet.Domains.Services
                     trnsData.TimeLog = DateTime.Now;
                     await _db.TblTransactions.AddAsync(trnsData);
                     await _db.SaveChangesAsync();
-                    return BaseResponseModel.Success("200", "Transfered Successfully");
+                    _tranResponse.trnRsp = BaseResponseModel.Success("200", "Transfered Successfully"); ;
+                    goto State;
                 }
                 else if(accData.AccBalance < amount)
-                {
-                    return BaseResponseModel.ValidationError("302", "Not Enough Balance!");
+                { 
+                    _tranResponse.trnRsp = BaseResponseModel.ValidationError("302", "Not Enough Balance!"); ;
+                    goto State;
                 }
                 else
                 {
-                    return BaseResponseModel.ValidationError("302", "Password Incorrect!");
+                    _tranResponse.trnRsp = BaseResponseModel.ValidationError("302", "Password Incorrect!");
+                    goto State;
                 }
             }
             catch (Exception ex)
             {
-                return BaseResponseModel.SystemError("502", ex.ToString());
+                _tranResponse.trnRsp = BaseResponseModel.SystemError("502", ex.ToString());
+                goto State;
             }
+            State: return _tranResponse;
         }
 
-        public async Task<BaseResponseModel> MakeWithDrawl(int id, int pass, int amount)
+        public async Task<TranResponseModel> MakeWithDrawl(int id, int pass, int amount)
         {
             try
             {
                 var data = await _db.TblAccounts.Where(x => x.AccId == id).FirstOrDefaultAsync();
                 if (data is null)
                 {
-                    return BaseResponseModel.DataNotExist("401", "Data Not Exists");
+                    _tranResponse.trnRsp = BaseResponseModel.DataNotExist("401", "Data Not Exists");
+                    goto State;
                 }
                 else
                 {
@@ -138,20 +148,24 @@ namespace MiniEWallet.Domains.Services
                             trnsData.TimeLog = DateTime.Now;
                             await _db.TblTransactions.AddAsync(trnsData);
                             await _db.SaveChangesAsync();
-                            return BaseResponseModel.Success("200", "WithDrwal Successfully");
+                            _tranResponse.trnRsp = BaseResponseModel.Success("200", "WithDrwal Successfully");
+                            goto State;
                         }
                         else
                         {
-                            return BaseResponseModel.ValidationError("302", "Balance Not Enough!");
+                            _tranResponse.trnRsp = BaseResponseModel.ValidationError("302", "Balance Not Enough!");
+                            goto State;
                         }
                     }
                     else
                     {
-                        return BaseResponseModel.ValidationError("302", "Password Incorrect!");
+                        _tranResponse.trnRsp = BaseResponseModel.ValidationError("302", "Password Incorrect!");
+                        goto State;
                     }
                 }
             }
-            catch (Exception ex) { return BaseResponseModel.SystemError("502", ex.ToString()); }
-        }
+            catch (Exception ex) { _tranResponse.trnRsp = BaseResponseModel.SystemError("502", ex.ToString()); goto State; }
+            State: return _tranResponse;
+        }   
     }
 }

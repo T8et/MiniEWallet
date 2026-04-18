@@ -8,7 +8,7 @@ namespace MiniEWallet.APIServices.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountsController : ControllerBase
+    public class AccountsController : ResponseController
     {
         private readonly AccServices _service;
 
@@ -35,7 +35,7 @@ namespace MiniEWallet.APIServices.Controllers
         public async Task<IActionResult> CreateAccount(TblAccount account)
         {
             var data = await _service.CreateAccount(account);
-            return Ok(data);
+            return Execute(data);
         }
     }
 }
