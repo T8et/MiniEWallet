@@ -26,8 +26,9 @@ namespace MiniEWallet.APIServices.Controllers
         [HttpPut("MakeTransfer")]
         public async Task<IActionResult> MakeTransfer(int frid, int toid, int pass, int amt)
         {
-            var data = await _service.MakeTransfer(frid, toid, pass, amt);
-            return Execute(data);
+            //var data = await _service.MakeTransfer(frid, toid, pass, amt);
+            var data1 = await _service.MakeTransfer1(frid, toid, pass, amt);
+            return Execute1(data1);
         }
 
         [HttpPut("MakeWithDrawl")]

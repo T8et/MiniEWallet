@@ -39,5 +39,22 @@ namespace MiniEWallet.APIServices.Controllers
             return StatusCode(503, "Invalid Response Model");
         }
 
+        public IActionResult Execute1<T>(ResultModel<T> model)
+        {
+            if (model.isSuccess)
+            {
+                return Ok(model);
+            }
+            if (model.isValidationError)
+            {
+                return BadRequest(model);
+            }
+            if (model.isSystemError)
+            {
+                return BadRequest(model);
+            }
+            return Ok(model);
+        }
+
     }
 }

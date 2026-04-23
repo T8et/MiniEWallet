@@ -14,12 +14,14 @@ namespace MiniEWallet.Domains.Services
         protected readonly AppDBContext _db;
         protected readonly AccountResponseModel _responseModel;
         protected readonly TranResponseModel _tranResponse;
+        protected ResultModel<TranResponseModel> _model;
 
         public TranServices()
         {
             _db = new AppDBContext();
             _responseModel = new AccountResponseModel();
             _tranResponse = new TranResponseModel();
+            _model = new ResultModel<TranResponseModel>();
         }
 
         public async Task<TranResponseModel> MakeDeposit(int id, int amount)
@@ -119,6 +121,65 @@ namespace MiniEWallet.Domains.Services
                 goto State;
             }
             State: return _tranResponse;
+        }
+
+        public async Task<ResultModel<TranResponseModel>> MakeTransfer1(int frid, int toid, int pass, int amount)
+        {
+            try
+            {
+                var accData = await _db.TblAccounts.Where(x => x.AccId == frid).FirstOrDefaultAsync();
+                if (accData is null)
+                {
+                    _model = ResultModel<TranResponseModel>.DataNotExist("Data Not Exists");
+                    goto State;
+                }
+                if (accData.AccPassword == pass && accData.AccBalance > amount)
+                {
+                    accData.AccBalance = accData.AccBalance - amount;
+                    await _db.SaveChangesAsync();
+
+                    var recData = await _db.TblAccounts.Where(x => x.AccId == toid).FirstOrDefaultAsync();
+                    if (recData is not null)
+                    {
+                        recData.AccBalance += amount;
+                        await _db.SaveChangesAsync();
+                    }
+
+                    var trnsData = new TblTransaction()
+                    {
+                        FrAccId = accData.AccId,
+                        ToAccId = toid,
+                        Amount = amount,
+                        TranType = 2,
+                        TimeLog = DateTime.Now
+                    };
+                    
+                    await _db.TblTransactions.AddAsync(trnsData);
+                    await _db.SaveChangesAsync();
+
+                    TranResponseModel item = new TranResponseModel();
+                    item.tran = trnsData;
+
+                    _model = ResultModel<TranResponseModel>.Success(item,"Transfered Successfully"); ;
+                    goto State;
+                }
+                else if (accData.AccBalance < amount)
+                {
+                    _model = ResultModel<TranResponseModel>.ValidationError("Not Enough Balance!"); ;
+                    goto State;
+                }
+                else
+                {
+                    _model = ResultModel<TranResponseModel>.ValidationError("Password Incorrect!");
+                    goto State;
+                }
+            }
+            catch (Exception ex)
+            {
+                _model = ResultModel<TranResponseModel>.SystemError(ex.ToString());
+                goto State;
+            }
+        State: return _model;
         }
 
         public async Task<TranResponseModel> MakeWithDrawl(int id, int pass, int amount)
